@@ -48,7 +48,7 @@ cd backend
 npm install
 ```
 
-3.Create a .env file in the backend folder with the following variables:
+3. Create a .env file in the backend folder with the following variables:
 
 ```bash
 PORT=4000
@@ -56,7 +56,7 @@ MONGODB_URI=your_mongodb_uri
 JWT_SECRET=your_jwt_secret
 ```
 
-4.Run the backend server:
+4. Run the backend server:
 
 
 ```bash
