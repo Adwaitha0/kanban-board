@@ -100,4 +100,4 @@ The app will run at http://localhost:3000.
 
 ## Sreenshot
 
-![Screenshot](./public/image.png)
+![Screenshot](./frontend/public/image.png)
