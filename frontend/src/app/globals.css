@@ -26,3 +26,21 @@ body {
   /* font-family: Arial, Helvetica, sans-serif; */
   font-family: "SF Pro Display", sans-serif; 
 }
+
+/* Remove default arrow for datalist inputs */
+.custom-datalist::-webkit-calendar-picker-indicator,
+.custom-datalist::-webkit-inner-spin-button,
+.custom-datalist::-webkit-clear-button {
+  display: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.custom-datalist::-webkit-search-cancel-button {
+  display: none;
+}
+
+/* Firefox */
+.custom-datalist::-moz-dropdown-arrow {
+  display: none;
+}
