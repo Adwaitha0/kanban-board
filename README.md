@@ -96,3 +96,8 @@ The app will run at http://localhost:3000.
 4. Drag and drop cards to change categories.
 
 5. Filter cards using search or tags.
+
+
+## Sreenshot
+
+![Board Screenshot](./public/screenshot.png)
