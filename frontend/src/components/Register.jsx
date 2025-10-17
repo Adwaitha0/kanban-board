@@ -14,7 +14,7 @@ function RegisterForm() {
     
     console.log('handlesubmit hit')
     e.preventDefault();  
-    fetch("http://localhost:4000/user/register", {
+    fetch("http://localhost:4000/user/general/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, email, password }),   

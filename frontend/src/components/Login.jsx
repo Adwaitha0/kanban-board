@@ -12,10 +12,10 @@ function LoginForm() {
 
 const handleSubmit = async (e) => {
   e.preventDefault();
-  console.log('handlesubmit hit');
+  console.log('login handlesubmit hit');
   
   try {
-    const response = await axios.post("http://localhost:4000/user/login", {
+    const response = await axios.post("http://localhost:4000/user/general/login", {
       email,
       password,
     });

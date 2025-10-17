@@ -1,10 +1,8 @@
-
-
 "use client";
 import Content from "./Content";
 import Swal from 'sweetalert2';
 import { DndContext, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
-import { useState , useEffect } from "react";
+import { useState , useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
 // const headings = ["Backlog", "To do", "In progress", "Designed"];
@@ -17,38 +15,40 @@ function Main({searchTerm, selectedTag}) {
   }));
 
   const [headings,setHeadings]=useState([]);
-  const [columns, setColumns] = useState(headings.map(() => []));
-  const [active, setActive] = useState(null);
+  const [columns, setColumns] = useState([]);
   const router=useRouter()
 
 
 
-  useEffect(()=>{
-    const fetchItems=async()=>{
+    const fetchItems=useCallback(async()=>{
       try{
         const token=sessionStorage.getItem('token');
         const res=await fetch('http://localhost:4000/user/board/category',{
           headers:{Authorization:`Bearer ${token}`},
         })
         if (res.status === 401) {
-  Swal.fire({
-    icon: "warning",
-    title: "Unauthorized",
-    text: "You are not authorized. Please login.",
-    confirmButtonText: "OK",
-    background: "#1b1212ff",
-    color: "#fff",
-  }).then(() => {
-    router.push("/");
-  });
-}
+        Swal.fire({
+          icon: "warning",
+          title: "Unauthorized",
+          text: "You are not authorized. Please login.",
+          confirmButtonText: "OK",
+          background: "#1b1212ff",
+          color: "#fff",
+        }).then(() => {
+          router.push("/");
+        });
+        return;
+      }
         const data=await res.json();
-        
+        console.log(data)
+        console.log('got category')
         const cardRes=await fetch('http://localhost:4000/user/board/card',{
+          method: 'GET',
           headers:{Authorization:`Bearer ${token}`},
         })
         const cards=await cardRes.json();
 
+        console.log(cards)
         const groupCards=data.map(cat=>
           cards.filter(card=>card.categoryId === cat._id)
         )
@@ -63,41 +63,76 @@ function Main({searchTerm, selectedTag}) {
       }catch(err){
         console.error('cant get categories',err)
       }
-    };
+    },[router]);
+  
+  useEffect(()=>{
     fetchItems();
-  },[])
+  },[fetchItems])
 
 
-  const handleDragEnd = async (event) => {
-    const { active, over } = event;
-    if (!over || !active) return;
+const handleDragEnd = async (event) => {
+  const { active, over } = event;
+  if (!over || !active) return;
 
-    const activeColIdx = parseInt(active.data.current.columnIndex);
-    const overColIdx = parseInt(over.data.current.columnIndex);
-    if (activeColIdx !== overColIdx) {
-      const cardIdx = active.data.current.index;
-      const card = columns[activeColIdx][cardIdx];
-      const nextState = columns.map(arr => [...arr]);
-      nextState[activeColIdx].splice(cardIdx, 1);
-       nextState[overColIdx].push({ ...card, categoryId: headings[overColIdx]._id });
-      setColumns(nextState);
+  const nextState = columns.map((col) => [...col]);
 
-      try {
-      const token = sessionStorage.getItem("token");
-      await fetch(`http://localhost:4000/user/board/card/update/${card._id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ categoryId: headings[overColIdx]._id }),
-      });
-    } catch (err) {
-      console.error("Failed to update card category", err);
+  let activeColIdx, activeIndex, overColIdx, overIndex;
+
+  nextState.forEach((col, colIdx) => {
+    const idx = col.findIndex(card => card._id === active.id);
+    if (idx !== -1) {
+      activeColIdx = colIdx;
+      activeIndex = idx;
     }
+  });
+
+  nextState.forEach((col, colIdx) => {
+    const idx = col.findIndex(card => card._id === over.id);
+    if (idx !== -1) {
+      overColIdx = colIdx;
+      overIndex = idx;
     }
-    setActive(null);
-  };
+  });
+
+  if (overIndex === undefined) {
+    overColIdx = nextState.findIndex(col => col.length === 0) ?? activeColIdx;
+    overIndex = nextState[overColIdx].length;
+  }
+
+  const draggedCard = nextState[activeColIdx][activeIndex];
+
+  console.log(draggedCard)
+  nextState[activeColIdx].splice(activeIndex, 1);
+  nextState[overColIdx].splice(overIndex, 0, {
+    ...draggedCard,
+    categoryId: headings[overColIdx]._id,
+  });
+  setColumns(nextState)
+
+
+  try {
+    const token = sessionStorage.getItem("token");
+    await fetch(`http://localhost:4000/user/board/category/updatePosition`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        cardId: draggedCard._id,
+        positionTo: overIndex,
+        positionFrom:activeIndex,
+        categoryId: headings[overColIdx]._id,
+        columnIdTo: headings[overColIdx].position,
+        columnIdFrom: headings[activeColIdx].position,
+      }),
+    });
+    await fetchItems();
+  } catch (err) {
+    console.error("Failed to update card", err);
+  }
+};
+
 
   if (headings.length === 0) return <p>No categories</p>
 

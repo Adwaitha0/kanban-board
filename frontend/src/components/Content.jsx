@@ -1,5 +1,6 @@
 
 import axios from 'axios';
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useDroppable } from "@dnd-kit/core";
 import Container from "./Container";
 import Form from "./Form";
@@ -7,7 +8,7 @@ import { useState } from "react";
 import Swal from "sweetalert2";
 
 
-function Content({ heading, containers, setContainers, columnIndex ,searchTerm, selectedTag}) {
+function Content({ heading, containers, setContainers, columnIndex,searchTerm, selectedTag}) {
   const [showForm, setShowForm] = useState(false);
   
   const [color, setColor] = useState("#e6a9dbff");
@@ -42,7 +43,7 @@ const filteredCards = containers.filter((card) => {
   if (result.isConfirmed) {
     try {
       const token = sessionStorage.getItem("token");
-      await axios.delete(`http://localhost:4000/user/board/card/${cardToDelete._id}`, {
+      await axios.delete(`http://localhost:4000/user/board/card/delete/${cardToDelete._id}`, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -76,6 +77,8 @@ const filteredCards = containers.filter((card) => {
         {
           ...data,
           categoryId:heading._id,
+          columnIndex,
+          position: containers.length
         },
         {
           headers:{
@@ -97,7 +100,7 @@ const filteredCards = containers.filter((card) => {
   const cardToEdit = containers[editingIndex]; 
   try {
     const token = sessionStorage.getItem("token");
-    const res = await axios.put(`http://localhost:4000/user/board/card/${cardToEdit._id}`,
+    const res = await axios.put(`http://localhost:4000/user/board/card/edit/${cardToEdit._id}`,
       updatedData,
       {
         headers: { Authorization: `Bearer ${token}`, },
@@ -130,19 +133,24 @@ const filteredCards = containers.filter((card) => {
         <img src="/add-circle.svg" alt="Add icon" className="w-6 h-6 cursor-pointer" onClick={toggleForm} />
       </div>
 
-      {filteredCards .map((c, index) => (
+      <SortableContext
+  items={filteredCards.map(c => c._id)}
+  strategy={verticalListSortingStrategy}
+>
 
+      {filteredCards .map((c, index) => (
 
         <div key={index}>
           <Container
           key={index}
-          title={c.title}
-          description={c.description}
-          tag={c.tag}
-          color={c.color}
+          // title={c.title}
+          // description={c.description}
+          // tag={c.tag}
+          // color={c.color}
+          card={c}
           onDelete={() => handleDelete(index)}
           onEdit={() => setEditingIndex(index)}
-          draggableId={`card-${columnIndex}-${index}`}
+          // draggableId={`card-${columnIndex}-${index}`}
           columnIndex={columnIndex}
           index={index}
         />
@@ -153,19 +161,14 @@ const filteredCards = containers.filter((card) => {
           initialData={containers[editingIndex]}
           onSubmit={handleEdit}
         />
-          </div>
-
-       
+          </div> 
       )}
-
-
         </div>
-       
-
-
-
-        
+              
       ))}
+  </SortableContext>
+
+
 
      
       <div className="mt-[10px]">
@@ -173,6 +176,8 @@ const filteredCards = containers.filter((card) => {
           <Form 
               initialData={{ title: "", description: "", tag: "", color: color }}
               onSubmit={handleAddCard}
+              columnIndex={columnIndex}
+              position={containers.length}
           />
         )}
       </div>

@@ -6,8 +6,8 @@ const ProfileController=require('../controller/ProfileContoller')
 const GeneralController=require('../controller/GeneralController');
 
 
-Router.post('/login',GeneralController.Login);
-Router.post('/register',GeneralController.Register);
+// Router.post('/general',GeneralController);
+Router.use('/general',GeneralController);
 Router.use('/board',authenticate,ProfileController)
 
 

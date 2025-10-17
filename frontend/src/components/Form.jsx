@@ -2,7 +2,7 @@
 import axios from 'axios';
 import { useState, useEffect } from "react";
 
-function Form({ initialData, onSubmit }) {
+function Form({ initialData, onSubmit, columnIndex=0, position =0 }) {
   const [availableTags,setAvailableTags]=useState([])
   const [showTags, setShowTags] = useState(false);
 
@@ -11,6 +11,8 @@ function Form({ initialData, onSubmit }) {
     description: "",
     tag: "",
     color: "#ffffff",
+    columnIndex:0,
+    position:0
   });
 
   useEffect(() => {
@@ -26,7 +28,7 @@ function Form({ initialData, onSubmit }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    onSubmit({...formData, columnIndex, position});
     setFormData({ title: "", description: "", tag: "", color: "#ffffff" });
   };
 
@@ -78,31 +80,6 @@ useEffect(() => {
         className="bg-[#323232] p-2 rounded-[5px] text-white placeholder:text-[14px] "
       />
 
-
-
-      
-
-
-
-{/* <div className="relative w-full">
-    <input
-        list="tags"
-        name="tag"
-        value={formData.tag}
-        onChange={handleChange}
-        placeholder="Tags"
-        className="bg-[#323232] p-2 rounded-[5px] text-white placeholder:text-[14px] appearance-none w-full pr-8 "
-      />
-      <datalist id="tags">
-        {availableTags?.map((tag, idx) => (
-          <option key={idx} value={tag} />
-        ))}
-      </datalist>
-
-            <img src="/arrow-down.svg" alt="arror"  className="absolute cursor-pointer right-2 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" />
-</div> */}
-      
-
   <div className="relative w-full">
   <input
     type="text"
@@ -137,11 +114,6 @@ useEffect(() => {
     </ul>
   )}
 </div>
-
-      
-
-
-
 
 
       <div className="flex items-center gap-2">

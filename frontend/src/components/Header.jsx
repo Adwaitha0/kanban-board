@@ -29,11 +29,7 @@ function Header({searchTerm, setSearchTerm, selectedTag, setSelectedTag}){
     const handleTextInputChange= (e) => { setColor(e.target.value); };
  
     const handleColorChange = (e) => { setColor(e.target.value);};
-    // const logout=()=>{
-    //     sessionStorage.removeItem('token')
-    //     router.push('/')
-    //     }
-
+  
     const logout = () => {
   Swal.fire({
     title: "Are you sure?",

@@ -1,11 +1,14 @@
-const Card=require('../../model/card');
+const express = require('express');
+const router = express.Router();
+const Card=require('../../../model/card');
 const mongoose=require('mongoose')
 
-const addCard= async (req,res)=>{
-    console.log('reached addCard')
-    try{
+
+router.post('/add',async (req,res)=>{
+  try{
         const userId=req.user.id;
-        const {title, description, tag, color, categoryId}=req.body;
+        const {title, description, tag, color, categoryId,columnIndex, position}=req.body;
+        const cardCount= await Card.countDocuments({categoryId})
         const card = new Card({
             title,
             description,
@@ -13,7 +16,8 @@ const addCard= async (req,res)=>{
             color,
             categoryId: new mongoose.Types.ObjectId(categoryId),
             userId: new mongoose.Types.ObjectId(userId),
-            position:0
+            position:position ?? cardCount,
+            columnIndex:columnIndex ?? 0
         });
         await card.save();
         res.status(201).json({message:'card added successfully',card});
@@ -21,20 +25,11 @@ const addCard= async (req,res)=>{
         console.error(error)
         res.status(500).json({message:'something went wrong',error})
     }
-}
 
-const getCard=async (req,res)=>{
-    try{
-        const userId=req.user.id;
-        const cards=await Card.find({userId}).sort({position:1})
-        res.status(200).json(cards)
-    }catch(error){
-        res.status(500).json({message:'Failed to fetch cards'})
-    }
-}
+})
 
-const editCard=async (req,res)=>{
-    try{
+router.put('/edit/:id',async (req,res)=>{
+     try{
         const {id}=req.params;
         const {title,description,tag,color}=req.body;
         const card=await Card.findByIdAndUpdate(
@@ -49,69 +44,57 @@ const editCard=async (req,res)=>{
     }catch(error){
         res.status(500).json({message:'Failed to update card', error})
     }
-}
+})
 
-const deleteCard= async (req,res)=>{
-    try{
+
+router.delete('/delete/:id',async(req,res)=>{
+   try{
         const {id}=req.params;
-        const deletedCard=await Card.findByIdAndDelete(id);
+        const deletedCard=await Card.findById(id);
         if(!deletedCard){
             return res.status(404).json({message:'Card not found'});
         }
+        const {columnIndex,position}=deletedCard;
+        await Card.findByIdAndDelete(id);
+        await Card.updateMany(
+          {
+          columnIndex :columnIndex, position:{$gt:position}
+          },{
+            $inc:{position:-1}
+          }
+      )
         res.status(200).json({message:'Card deleted successfully'})
     }catch(error){
         res.status(500).json({message:'Failed to delete card', error})
     }
-}
+})
+
+router.get('/',async(req,res)=>{
+     try{
+        const userId=req.user.id;
+        const cards=await Card.find({userId}).sort({position:1})
+        res.status(200).json(cards)
+    }catch(error){
+        res.status(500).json({message:'Failed to fetch cards'})
+    }
+})
 
 
-
-const getTag=async (req,res)=>{
-    try{
+router.get('/tags',async(req,res)=>{
+     try{
         const tags= await Card.distinct('tag');
          const filteredTags = tags.filter(tag => tag && tag.trim() !== "");
-        console.log(tags)
         res.status(200).json({tags:filteredTags })
     }catch(error){
         res.status(500).json({message:'Failed to fetch cards'})
     }
-}
-
-
-const updateCardCategory = async (req, res) => {
-  try {
-    const { id } = req.params; 
-    const { categoryId } = req.body; 
-    if (!categoryId) {
-      return res.status(400).json({ message: "Category ID is required" });
-    }
-    const updatedCard = await Card.findByIdAndUpdate(
-      id,
-      { categoryId },
-      { new: true }
-    );
-    if (!updatedCard) {
-      return res.status(404).json({ message: "Card not found" });
-    }
-    res.status(200).json({
-      message: "Card category updated successfully",
-      card: updatedCard,
-    });
-  } catch (error) {
-    console.error("Error updating card category:", error);
-    res.status(500).json({ message: "Failed to update card category" });
-  }
-};
+})
 
 
 
 
+module.exports=router;
 
-module.exports={
-    addCard,
-    getCard,
-    editCard,
-    deleteCard,
-    getTag,
-    updateCardCategory
-}
+
+
+
