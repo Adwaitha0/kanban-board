@@ -1,13 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const Card=require('../../../model/card');
+const Category=require('../../../model/category')
 const mongoose=require('mongoose')
 
 
 router.post('/add',async (req,res)=>{
   try{
         const userId=req.user.id;
-        const {title, description, tag, color, categoryId,columnIndex, position}=req.body;
+        const {title, description, tag, color, categoryId,position}=req.body;
         const cardCount= await Card.countDocuments({categoryId})
         const card = new Card({
             title,
@@ -17,7 +18,6 @@ router.post('/add',async (req,res)=>{
             categoryId: new mongoose.Types.ObjectId(categoryId),
             userId: new mongoose.Types.ObjectId(userId),
             position:position ?? cardCount,
-            columnIndex:columnIndex ?? 0
         });
         await card.save();
         res.status(201).json({message:'card added successfully',card});
@@ -71,12 +71,14 @@ router.delete('/delete/:id',async(req,res)=>{
 
 router.get('/',async(req,res)=>{
      try{
-        const userId=req.user.id;
-        const cards=await Card.find({userId}).sort({position:1})
+        const userId=req.user.id;  
+        const category=await Category.find({userId});     
+        const categoryIds = category.map(category => category._id);
+        const cards = await Card.find({categoryId:{ $in: categoryIds}}).sort({ position: 1 });
         res.status(200).json(cards)
-    }catch(error){
-        res.status(500).json({message:'Failed to fetch cards'})
-    }
+        }catch(error){
+            res.status(500).json({message:'Failed to fetch cards'})
+        }
 })
 
 
@@ -89,9 +91,6 @@ router.get('/tags',async(req,res)=>{
         res.status(500).json({message:'Failed to fetch cards'})
     }
 })
-
-
-
 
 module.exports=router;
 

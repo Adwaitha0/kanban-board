@@ -14,7 +14,7 @@ function Content({ heading, containers, setContainers, columnIndex,searchTerm, s
   const [color, setColor] = useState("#e6a9dbff");
   const [editingIndex, setEditingIndex] = useState(null);
   const { setNodeRef } = useDroppable({
-    id: `droppable-${columnIndex}`,
+    id: heading._id,
     data: { columnIndex },
   });
 
@@ -69,7 +69,6 @@ const filteredCards = containers.filter((card) => {
   }
 };
 
-
   const handleAddCard= async (data)=>{
     try{
       const token=sessionStorage.getItem('token');  
@@ -77,7 +76,6 @@ const filteredCards = containers.filter((card) => {
         {
           ...data,
           categoryId:heading._id,
-          columnIndex,
           position: containers.length
         },
         {
@@ -133,24 +131,15 @@ const filteredCards = containers.filter((card) => {
         <img src="/add-circle.svg" alt="Add icon" className="w-6 h-6 cursor-pointer" onClick={toggleForm} />
       </div>
 
-      <SortableContext
-  items={filteredCards.map(c => c._id)}
-  strategy={verticalListSortingStrategy}
->
+      <SortableContext items={filteredCards.map(c => c._id)} strategy={verticalListSortingStrategy} >
 
       {filteredCards .map((c, index) => (
-
         <div key={index}>
           <Container
           key={index}
-          // title={c.title}
-          // description={c.description}
-          // tag={c.tag}
-          // color={c.color}
           card={c}
           onDelete={() => handleDelete(index)}
           onEdit={() => setEditingIndex(index)}
-          // draggableId={`card-${columnIndex}-${index}`}
           columnIndex={columnIndex}
           index={index}
         />
@@ -167,10 +156,7 @@ const filteredCards = containers.filter((card) => {
               
       ))}
   </SortableContext>
-
-
-
-     
+    
       <div className="mt-[10px]">
         {showForm && (
           <Form 

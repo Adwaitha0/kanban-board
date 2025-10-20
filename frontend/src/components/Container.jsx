@@ -5,21 +5,6 @@ import { CSS } from "@dnd-kit/utilities";
 import { useState } from "react";
 import Form from "./Form";
 
-// function Container({
-//   title,
-//   description,
-//   tag,
-//   color,
-//   onDelete,
-//   onEdit,
-//   draggableId,
-//   columnIndex,
-//   index,
-// }) {
-//   const { attributes, listeners, setNodeRef, isDragging, setActivatorNodeRef } = useDraggable({
-//   id: draggableId,
-//   data: { columnIndex, index }
-// });
 function Container({ card, onDelete, onEdit }) {
 const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: card._id, 
@@ -41,7 +26,6 @@ const style = {
   return (
     <div
       className={`w-full  h-auto p-4 rounded-[6px] mt-2 transition-opacity duration-200 ${isDragging ? "opacity-50" : ""}`}
-      // style={{backgroundColor:color}}
         style={style}
       
       ref={setNodeRef} {...listeners} {...attributes} 
