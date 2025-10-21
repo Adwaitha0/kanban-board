@@ -1,6 +1,5 @@
 const express=require('express');
 const Router=express.Router();
-console.log('controller reached')
 const authenticate=require('../middleware/auth')
 const ProfileController=require('../controller/ProfileContoller')
 const GeneralController=require('../controller/GeneralController');
