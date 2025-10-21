@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { makeGeneralPOSTApiCall } from "@/helper/api";
 
 
 function RegisterForm() {
@@ -10,26 +11,19 @@ function RegisterForm() {
   const [password, setPassword] = useState("");
 
   const router = useRouter();
-  const handleSubmit = (e) => {
-    
-    console.log('handlesubmit hit')
+  const handleSubmit = async (e) => {
     e.preventDefault();  
-    fetch("http://localhost:4000/user/general/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password }),   
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        console.log(data);
-        if(data.message==='Registered successfully'){
+    try{
+      const data=await makeGeneralApiCall('/register','GET',{name,email,password})
+      if(data.message==='Registered successfully'){
           alert('registered successfully');
           router.push('/user/login');
         }else{
           alert(data.message)
-        }      
-      })
-      .catch((err) => console.error(err));
+        }  
+    }catch(error){
+      console.error('Registration failed: ',err)
+    }       
   };
 
   const containerStyle = {
@@ -94,9 +88,8 @@ function RegisterForm() {
 
        
 
-       
+      
         <div style={{display:'flex', gap:'5px', width:'100%'}}>
-          {/* <label style={{ display: "block", marginBottom: "4px", color: "#4b5563" }}>Email</label> */}
           <input style={inputStyle}
             name="email"
             type="email"

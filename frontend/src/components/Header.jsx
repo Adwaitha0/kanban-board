@@ -1,24 +1,21 @@
 "use client";
-import axios from 'axios';
+// import axios from 'axios';
 import Swal from 'sweetalert2'
 import { useRouter } from "next/navigation";
 import React,{useState, useEffect} from "react";
+import { makePrivateGETApiCall } from '@/helper/api';
 
 function Header({searchTerm, setSearchTerm, selectedTag, setSelectedTag}){
     const [color, setColor] = useState("#ffffff");
     const [availableTags, setAvailableTags] = useState([]);
-//   const [selectedTag, setSelectedTag] = useState("");
   const [showTags, setShowTags] = useState(false);
   const router=useRouter();
 
   useEffect(() => {
   async function fetchTags() {
     try {
-      const token = sessionStorage.getItem("token");
-      const res = await axios.get("http://localhost:4000/user/board/card/tags", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setAvailableTags(res.data.tags);
+      const res = await makePrivateGETApiCall("/card/tags");
+      setAvailableTags(res.tags);
     } catch (error) {
       console.error("Error fetching tags:", error);
     }

@@ -1,11 +1,11 @@
 
-import axios from 'axios';
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useDroppable } from "@dnd-kit/core";
 import Container from "./Container";
 import Form from "./Form";
 import { useState } from "react";
 import Swal from "sweetalert2";
+import { makePrivatePOSTApiCall, makePrivateDELETEApiCall, makePrivatePUTApiCall} from "@/helper/api";
 
 
 function Content({ heading, containers, setContainers, columnIndex,searchTerm, selectedTag}) {
@@ -42,13 +42,7 @@ const filteredCards = containers.filter((card) => {
   });
   if (result.isConfirmed) {
     try {
-      const token = sessionStorage.getItem("token");
-      await axios.delete(`http://localhost:4000/user/board/card/delete/${cardToDelete._id}`, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await makePrivateDELETEApiCall(`/card/delete/${cardToDelete._id}`);
       setContainers(containers.filter((_, ind) => ind !== indexToDelete));
       Swal.fire({
         title: "Deleted!",
@@ -70,22 +64,13 @@ const filteredCards = containers.filter((card) => {
 };
 
   const handleAddCard= async (data)=>{
-    try{
-      const token=sessionStorage.getItem('token');  
-      const res=await axios.post('http://localhost:4000/user/board/card/add',
-        {
-          ...data,
-          categoryId:heading._id,
-          position: containers.length
-        },
-        {
-          headers:{
-            'Content-Type':'application/json',
-            Authorization:`Bearer ${token}`,
-          }
-        }
-      )   
-      setContainers([...containers,res.data.card])
+    try{  
+      const res=await makePrivatePOSTApiCall("/card/add",{
+      ...data,
+      categoryId: heading._id,
+      position: containers.length,
+    });   
+      setContainers([...containers,res.card])
     }catch(error){
       alert(error.response?.data?.message || 'something went wrong')
     }finally{
@@ -97,14 +82,10 @@ const filteredCards = containers.filter((card) => {
   const handleEdit = async (updatedData) => {
   const cardToEdit = containers[editingIndex]; 
   try {
-    const token = sessionStorage.getItem("token");
-    const res = await axios.put(`http://localhost:4000/user/board/card/edit/${cardToEdit._id}`,
-      updatedData,
-      {
-        headers: { Authorization: `Bearer ${token}`, },
-      }
+    const res = await makePrivatePUTApiCall(`/card/edit/${cardToEdit._id}`,
+      updatedData
     );
-    const updatedCard = res.data.card; 
+    const updatedCard = res.card; 
     setContainers(
       containers.map((c, i) => (i === editingIndex ? updatedCard : c))
     );

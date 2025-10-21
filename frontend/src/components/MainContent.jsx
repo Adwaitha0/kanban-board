@@ -9,6 +9,7 @@ import {
 } from "@dnd-kit/core";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import {  makePrivateGETApiCall, makePrivatePUTApiCall} from "@/helper/api";
 
 function Main({ searchTerm, selectedTag }) {
   const sensors = useSensors(
@@ -25,29 +26,8 @@ function Main({ searchTerm, selectedTag }) {
 
   const fetchItems = useCallback(async () => {
     try {
-      const token = sessionStorage.getItem("token");
-      const res = await fetch("http://localhost:4000/user/board/category", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.status === 401) {
-        Swal.fire({
-          icon: "warning",
-          title: "Unauthorized",
-          text: "You are not authorized. Please login.",
-          confirmButtonText: "OK",
-          background: "#1b1212ff",
-          color: "#fff",
-        }).then(() => {
-          router.push("/");
-        });
-        return;
-      }
-      const data = await res.json();
-      const cardRes = await fetch("http://localhost:4000/user/board/card", {
-        method: "GET",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const cards = await cardRes.json();
+      const data = await makePrivateGETApiCall('/category')
+      const cards = await makePrivateGETApiCall('/card')
       const groupCards = data.map((cat) =>
         cards.filter((card) => card.categoryId === cat._id)
       );
@@ -61,10 +41,23 @@ function Main({ searchTerm, selectedTag }) {
       }
     } catch (err) {
       console.error("cant get categories", err);
+      if (res.status === 401) {
+        Swal.fire({
+          icon: "warning",
+          title: "Unauthorized",
+          text: "You are not authorized. Please login.",
+          confirmButtonText: "OK",
+          background: "#1b1212ff",
+          color: "#fff",
+        }).then(() => {
+          router.push("/");
+        });
+        return;
+      }
     }
   }, [router]);
 
-  
+
 
   useEffect(() => {
     fetchItems();
@@ -91,19 +84,11 @@ function Main({ searchTerm, selectedTag }) {
     }
 
     try {
-      const token = sessionStorage.getItem("token");
-      await fetch(`http://localhost:4000/user/board/category/updatePosition`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          cardId: active.id,
-          positionTo: overIndex,
-          categoryId: headings[overColIdx]._id,
-        }),
-      });
+      await makePrivatePUTApiCall("/category/updatePosition", {
+      cardId: active.id,
+      positionTo: overIndex,
+      categoryId: headings[overColIdx]._id,
+    });
       await fetchItems();
     } catch (err) {
       console.error("Failed to update card", err);
